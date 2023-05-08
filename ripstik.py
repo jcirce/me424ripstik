@@ -64,6 +64,9 @@ theta_c = symbols('theta_c')
 #rotation of wheel
 theta_43 = Function('theta_43')(t)
 theta_76 = Function('theta_76')(t)
+#non-rotating wheel angle
+xi_R = Function('xi_R')(t)
+xi_F = Function('xi_F')(t)
 
 #rotation from inertial to rear footpad
 R21 = rot1(alpha_2)*rot2(beta_2)*rot3(gamma_2)
@@ -78,6 +81,10 @@ R61 = R51*rot2(-theta_c)*rot3(theta_65)
 R62 = R52*rot2(-theta_c)*rot3(theta_65) 
 R71 = R61*rot3(theta_76)
 R72 = R62*rot3(theta_76)
+
+#non-rotating wheel frames
+Rxi_R = rot2(xi_R)
+Rxi_F = rot2(xi_F)
 
 #location of com of rear footpad in inertial frame (absolute position)
 r_G2_1 = Matrix([
@@ -143,6 +150,14 @@ r_G7_6 = Matrix([
 r_G7_1 = r_G6_1 + R61*r_G7_6
 r_G7_2 = R62*r_G7_6
 
+#location of wheel contact with ground
+R = symbols('R')
+wheel_radius = Matrix([
+    [R],
+    [0],
+    [0]])
+r_R = r_G4_1 + R41*Rxi_R*wheel_radius
+r_F = r_G7_1 + R71*Rxi_F*wheel_radius
 
 original_stdout = sys.stdout # Save a reference to the original standard output
 fname = os.path.dirname(os.path.realpath(__file__)) + r'/ripstik.tex'
