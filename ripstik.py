@@ -49,27 +49,27 @@ x_2 = Function('x_2')(t)
 y_2 = Function('y_2')(t)
 z_2 = Function('z_2')(t)
 
-x_2dot = diff(x_2, t)
-y_2dot = diff(y_2, t)
-z_2dot = diff(z_2, t)
+# x_2dot = diff(x_2, t)
+# y_2dot = diff(y_2, t)
+# z_2dot = diff(z_2, t)
 
 alpha_2 = Function('alpha_2')(t)
 beta_2 = Function('beta_2')(t)
 gamma_2 = Function('gamma_2')(t)
 
-alpha_2dot = diff(alpha_2, t)
-beta_2dot = diff(beta_2, t)
-gamma_2dot = diff(gamma_2, t)
+# alpha_2dot = diff(alpha_2, t)
+# beta_2dot = diff(beta_2, t)
+# gamma_2dot = diff(gamma_2, t)
 
 #twist forward deck to rear deck
 theta_52 = Function('theta_52')(t)
-theta_52dot = diff(theta_52, t)
+# theta_52dot = diff(theta_52, t)
 
 #relative angle caster to deck
 theta_32 = Function('theta_32')(t)
 theta_65 = Function('theta_65')(t)
-theta_32dot = diff(theta_32, t)
-theta_65dot = diff(theta_65, t)
+# theta_32dot = diff(theta_32, t)
+# theta_65dot = diff(theta_65, t)
 
 #fixed caster angle
 theta_c = symbols('theta_c')
@@ -77,89 +77,59 @@ theta_c = symbols('theta_c')
 #rotation of wheel
 theta_43 = Function('theta_43')(t)
 theta_76 = Function('theta_76')(t)
-theta_43dot = diff(theta_43, t)
-theta_76dot = diff(theta_76, t)
+# theta_43dot = diff(theta_43, t)
+# theta_76dot = diff(theta_76, t)
 
 #non-rotating wheel angle
 xi_R = Function('xi_R')(t)
 xi_F = Function('xi_F')(t)
-xi_Rdot = diff(xi_R, t)
-xi_Fdot = diff(xi_F, t)
+# xi_Rdot = diff(xi_R, t)
+# xi_Fdot = diff(xi_F, t)
 
-qdot = Matrix([x_2dot,
-               y_2dot,
-               z_2dot,
-               alpha_2dot,
-               beta_2dot,
-               gamma_2dot,
-               theta_52dot,
-               theta_32dot,
-               theta_65dot,
-               theta_43dot,
-               theta_76dot,
-               xi_Rdot,
-               xi_Fdot])
-
-
+q = Matrix([x_2,y_2,z_2,alpha_2,beta_2,gamma_2,theta_52,theta_32,theta_65,theta_43,theta_76,xi_R,xi_F])
+qdot = diff(q,t)
+# qdot = Matrix([x_2dot,
+#                y_2dot,
+#                z_2dot,
+#                alpha_2dot,
+#                beta_2dot,
+#                gamma_2dot,
+#                theta_52dot,
+#                theta_32dot,
+#                theta_65dot,
+#                theta_43dot,
+#                theta_76dot,
+#                xi_Rdot,
+#                xi_Fdot])
 
 
 #rotation from inertial to rear footpad
 #from 1 to 2
 R12 = rotx(alpha_2)*roty(beta_2)*rotz(gamma_2)
-Omega12_22 = (R12.T * diff(R12,t)) #angular vel of 2 frame wrt 1 frame expressed in 2 frame 
-omega12_2 = unskew(Omega12_22)
-
-Omega12_11 = (R12*Omega12_22*R12.T)
-omega12_1 = unskew(Omega12_11)
-# B2 = omega12_1.jacobian(qdot)
 
 #rear caster
 #from 2 to 3
 R23 = roty(-theta_c)*rotz(theta_32)
-Omega23_33 =(R23.T* diff(R23,t))
-omega23_3 = unskew(Omega23_33)
 
 R13 = R12*R23  #2's cancel
-Omega13_33 =(R13.T* diff(R13,t))
-Omega13_11 = (R13*Omega13_33*R13.T)
-omega13_1 = unskew(Omega13_11)
-
-# B3 = omega23_3.jacobian(qdot)
 
 #rear wheel
 R34 = rotz(theta_43)
 R14 = R13*R34 
-Omega14_44 = (R14.T* diff(R14,t))
-Omega14_11 = (R14*Omega14_44*R14.T)
-omega14_1 = unskew(Omega14_11)
-# B4 = omega14_1.jacobian(qdot)
 
 #front footpad rotation
 R25 = rotx(theta_52)
 R15 = R12*R25 #2's cancel
-Omega15_55 = (R15.T* diff(R15,t))
-Omega15_11 = (R15*Omega15_55*R15.T)
-omega15_1 = unskew(Omega15_11)
-# B5 = omega15_1.jacobian(qdot)
 
 #front caster
 R56 = roty(-theta_c)*rotz(theta_65)
 R16 = R15*R56 
-Omega16_66 = (R16.T* diff(R16,t))
-Omega16_11 = (R16*Omega16_66*R16.T)
-omega16_1 = unskew(Omega16_11)
-# B6 = omega16_1.jacobian(qdot)
 
 R26 = R25*R56 
 
 #front wheel
 R67 = rotz(theta_76)
 R17 = R16*R67
-Omega17_77 = (R17.T* diff(R17,t))
-Omega17_11 = (R17*Omega17_77*R17.T)
-omega17_1 = unskew(Omega17_11)
-# B7 = omega17_1.jacobian(qdot)
-
 
 R27 = R26*R67
 
@@ -248,25 +218,53 @@ wheel_radius = Matrix([
 r_R = r_G4_1 + R14*Rxi_R*wheel_radius
 r_F = r_G7_1 + R17*Rxi_F*wheel_radius
 
-# m_2, J1, J2, J3 = symbols('m_2, J1, J2, J3')
-# ##one at a time eom
-# Xdot_2 = Matrix([v_G2_1, omega12_2])
-# B = Xdot_2.jacobian(qdot)
-# Bdot = diff(B, t)
+#tangent vectors of wheels at R and F
+t_R = R14* diff(Rxi_R*wheel_radius,xi_R)
+t_F = R17 *diff(Rxi_F*wheel_radius,xi_F)
 
-# G_2 = zeros(6, 1)
+#holonomic constraints on the system Ch(q) = [CH1,CH2,CH3,CH4].T
+CH1 = r_R[2]
+CH2 = r_F[2]
+normVect = Matrix([0,0,1]) #normal vector to ground in 1 frame
+CH3 = t_R.dot(normVect)
+CH4 = t_F.dot(normVect)
 
-# M_2 = zeros(6,6)
-# M_2[:3,:3] = m_2*eye(3)
-# M_2[3:,3:] = diag(J1, J2, J3)
-# D = zeros(6,6)
-# D[0:3,0:3] = Omega12_22
-# D[3:6,3:6] = Omega12_22
+CH = Matrix([CH1,CH2,CH3,CH4]) #holonomic constraints  CH = 0
 
-# Mstar = simplify(B.T * M_2 * B)
-# Nstar = simplify(B.T * (D*M_2*B + M_2*Bdot))
-# Gstar = simplify(B.T * G)
-# eom_2 = simplify(Mstar.inv() * (Gstar - Nstar*qdot))
+#non holonomic constriants on the system Cnh(q) = [CNH1,CNH2,CNH3,CNH4].T
+#velocity vectors of the contact points F and R
+v_R = r_R.diff(t)
+v_F = r_F.diff(t)
+
+CNH1= v_R[0]
+CNH2 = v_R[1]
+CNH3 = v_F[0]
+CNH4 = v_F[1]
+
+CNH = Matrix([CNH1,CNH2,CNH3,CNH4]) #non holonomic constraints CNH=0
+
+#finding the holonomic velocity of lagranges equation?? not sure what its called 
+q = Matrix([x_2,y_2,z_2,alpha_2,beta_2,gamma_2,theta_52,theta_32,theta_65,theta_43,theta_76,xi_R,xi_F])
+
+CH_dt = CH.jacobian(q) #CH_dt * qdot = 0
+B = CNH.jacobian(q) #B * qdot = 0 #is the jacobian of the system
+
+D = Matrix([[CH_dt,B]]) # it should be vertical [[CH_dt],[B]].T, plese double check   #D(q)qdot = 0
+
+
+mp = 1.14 #kg mass of decks
+mh=  70 #kg mass of human
+
+m2 = mp+mh/2
+m5 = m2
+m3 = 0.25 #mass of casters
+m6 = m3
+m4 = 0.11 #mass of wheels
+m7 = m4 
+
+M_m = diag(m2,m3,m4,m5,m6,m7) #mass matrix
+# M_I = []#MOI Tensor
+# M_q = B*M*B
 
 
 original_stdout = sys.stdout # Save a reference to the original standard output
@@ -288,10 +286,6 @@ with open(fname, 'w') as f:
     print(r'\end{align}')
     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'\tilde{\omega}_{1/2}^{(2,2)} &= ', replace_values_in_string(latex(Omega12_22)))
-    print(r'\end{align}')
-    print(r'\\')
 
     # print(r'\begin{align}')
     # print(r'\tilde{\omega}_{1/2}^{(1,1)} &= ', replace_values_in_string(latex(Omega12_11)))
@@ -397,12 +391,6 @@ with open(fname, 'w') as f:
     print(r'\end{align}')
     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'eom &= ', replace_values_in_string(latex(eom_2)))
-    print(r'\end{align}')
-    print(r'\\')
-
-    
     print('\n', r'\end{document}')
 
     sys.stdout = original_stdout # Reset the standard output to its original value
