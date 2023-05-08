@@ -100,20 +100,31 @@ qdot = Matrix([x_2dot,
                xi_Rdot,
                xi_Fdot])
 
+
+
+
 #rotation from inertial to rear footpad
 #from 1 to 2
 R12 = rotx(alpha_2)*roty(beta_2)*rotz(gamma_2)
 Omega12_22 = (R12.T * diff(R12,t)) #angular vel of 2 frame wrt 1 frame expressed in 2 frame 
+omega12_2 = unskew(Omega12_22)
+
 Omega12_11 = (R12*Omega12_22*R12.T)
 omega12_1 = unskew(Omega12_11)
+# B2 = omega12_1.jacobian(qdot)
 
 #rear caster
 #from 2 to 3
 R23 = roty(-theta_c)*rotz(theta_32)
+Omega23_33 =(R23.T* diff(R23,t))
+omega23_3 = unskew(Omega23_33)
+
 R13 = R12*R23  #2's cancel
 Omega13_33 =(R13.T* diff(R13,t))
 Omega13_11 = (R13*Omega13_33*R13.T)
-omega13_1 = unskew(Omega12_11)
+omega13_1 = unskew(Omega13_11)
+
+# B3 = omega23_3.jacobian(qdot)
 
 #rear wheel
 R34 = rotz(theta_43)
@@ -121,7 +132,7 @@ R14 = R13*R34
 Omega14_44 = (R14.T* diff(R14,t))
 Omega14_11 = (R14*Omega14_44*R14.T)
 omega14_1 = unskew(Omega14_11)
-
+# B4 = omega14_1.jacobian(qdot)
 
 #front footpad rotation
 R25 = rotx(theta_52)
@@ -129,6 +140,7 @@ R15 = R12*R25 #2's cancel
 Omega15_55 = (R15.T* diff(R15,t))
 Omega15_11 = (R15*Omega15_55*R15.T)
 omega15_1 = unskew(Omega15_11)
+# B5 = omega15_1.jacobian(qdot)
 
 #front caster
 R56 = roty(-theta_c)*rotz(theta_65)
@@ -136,7 +148,7 @@ R16 = R15*R56
 Omega16_66 = (R16.T* diff(R16,t))
 Omega16_11 = (R16*Omega16_66*R16.T)
 omega16_1 = unskew(Omega16_11)
-
+# B6 = omega16_1.jacobian(qdot)
 
 R26 = R25*R56 
 
@@ -146,6 +158,8 @@ R17 = R16*R67
 Omega17_77 = (R17.T* diff(R17,t))
 Omega17_11 = (R17*Omega17_77*R17.T)
 omega17_1 = unskew(Omega17_11)
+# B7 = omega17_1.jacobian(qdot)
+
 
 R27 = R26*R67
 
@@ -153,11 +167,17 @@ R27 = R26*R67
 Rxi_R = roty(xi_R)
 Rxi_F = roty(xi_F)
 
+# B = Matrix([[B2],[B3],[B4],[B5],[B6],[B7]])
+# print(B3)
+
 #location of com of rear footpad in inertial frame (absolute position)
 r_G2_1 = Matrix([
     [x_2],
     [y_2],
     [z_2]])
+
+v_G2_1 = diff(r_G2_1, t)
+# print(v_G2_1)
 
 l_z, l_cx, l_cz, l_x1, l_x2, l_x3 = symbols('l_z l_cx l_cz l_x1 l_x2 l_x3')
 #lz = vertical difference between footpad and caster
@@ -228,7 +248,25 @@ wheel_radius = Matrix([
 r_R = r_G4_1 + R14*Rxi_R*wheel_radius
 r_F = r_G7_1 + R17*Rxi_F*wheel_radius
 
+# m_2, J1, J2, J3 = symbols('m_2, J1, J2, J3')
+# ##one at a time eom
+# Xdot_2 = Matrix([v_G2_1, omega12_2])
+# B = Xdot_2.jacobian(qdot)
+# Bdot = diff(B, t)
 
+# G_2 = zeros(6, 1)
+
+# M_2 = zeros(6,6)
+# M_2[:3,:3] = m_2*eye(3)
+# M_2[3:,3:] = diag(J1, J2, J3)
+# D = zeros(6,6)
+# D[0:3,0:3] = Omega12_22
+# D[3:6,3:6] = Omega12_22
+
+# Mstar = simplify(B.T * M_2 * B)
+# Nstar = simplify(B.T * (D*M_2*B + M_2*Bdot))
+# Gstar = simplify(B.T * G)
+# eom_2 = simplify(Mstar.inv() * (Gstar - Nstar*qdot))
 
 
 original_stdout = sys.stdout # Save a reference to the original standard output
@@ -356,6 +394,11 @@ with open(fname, 'w') as f:
 
     print(r'\begin{align}')
     print(r'r_{L}^{(1)} &= ', replace_values_in_string(latex(r_F)))
+    print(r'\end{align}')
+    print(r'\\')
+
+    print(r'\begin{align}')
+    print(r'eom &= ', replace_values_in_string(latex(eom_2)))
     print(r'\end{align}')
     print(r'\\')
 
