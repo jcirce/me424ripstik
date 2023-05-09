@@ -233,7 +233,7 @@ CH = Matrix([CH1,CH2,CH3,CH4]) #holonomic constraints  CH = 0
 
 #non holonomic constriants on the system Cnh(q) = [CNH1,CNH2,CNH3,CNH4].T
 #velocity vectors of the contact points F and R
-v_R = r_R.diff(t)
+v_R = r_R.diff(t) #need rotation matrix herer?
 v_F = r_F.diff(t)
 
 CNH1= v_R[0]
@@ -242,15 +242,35 @@ CNH3 = v_F[0]
 CNH4 = v_F[1]
 
 CNH = Matrix([CNH1,CNH2,CNH3,CNH4]) #non holonomic constraints CNH=0
+print(shape(CNH))
 
 #finding the holonomic velocity of lagranges equation?? not sure what its called 
-q = Matrix([x_2,y_2,z_2,alpha_2,beta_2,gamma_2,theta_52,theta_32,theta_65,theta_43,theta_76,xi_R,xi_F])
+q = Matrix([x_2, 
+            y_2, 
+            z_2, 
+            alpha_2, 
+            beta_2, 
+            gamma_2, 
+            theta_52, 
+            theta_32, 
+            theta_65, 
+            theta_43, 
+            theta_76, 
+            xi_R, 
+            xi_F])
 
-CH_dt = CH.jacobian(q) #CH_dt * qdot = 0
-B = CNH.jacobian(q) #B * qdot = 0 #is the jacobian of the system
+CH_dot = CH.diff(t) 
+CH_q = CH_dot.jacobian(qdot) #CH_dt * qdot = 0
+print(shape(CH_q))
 
-D = Matrix([[CH_dt,B]]) # it should be vertical [[CH_dt],[B]].T, plese double check   #D(q)qdot = 0
 
+B = CNH.jacobian(qdot) 
+print(shape(B))
+# print(shape(B))
+D = Matrix([[CH_q],
+            [B]])  #D(q)qdot = 0
+print(shape(D))
+# print(D)
 
 mp = 1.14 #kg mass of decks
 mh=  70 #kg mass of human
@@ -262,135 +282,150 @@ m6 = m3
 m4 = 0.11 #mass of wheels
 m7 = m4 
 
-M_m = diag(m2,m3,m4,m5,m6,m7) #mass matrix
+# M_m = diag(m2,m3,m4,m5,m6,m7) #mass matrix
 # M_I = []#MOI Tensor
 # M_q = B*M*B
 
 
-original_stdout = sys.stdout # Save a reference to the original standard output
-fname = os.path.dirname(os.path.realpath(__file__)) + r'/ripstik.tex'
-with open(fname, 'w') as f:
-    sys.stdout = f # Change the standard output to the file we created.
-    # LaTeX output
-    print(r'\documentclass{article}')
-    print(r'\usepackage[margin=0.7in]{geometry}')
-    print(r'\usepackage{lscape}')
-    print(r'\usepackage[parfill]{parskip}')
-    print(r'\usepackage[utf8]{inputenc}')
-    print(r'\usepackage{amsmath,amssymb,amsfonts,amsthm}')
-    print(r'\begin{document}')
-    # print(r'\begin{landscape}')
+# original_stdout = sys.stdout # Save a reference to the original standard output
+# fname = os.path.dirname(os.path.realpath(__file__)) + r'/ripstik.tex'
+# with open(fname, 'w') as f:
+#     sys.stdout = f # Change the standard output to the file we created.
+#     # LaTeX output
+#     print(r'\documentclass{article}')
+#     print(r'\usepackage[margin=0.7in]{geometry}')
+#     print(r'\usepackage{lscape}')
+#     print(r'\usepackage[parfill]{parskip}')
+#     print(r'\usepackage[utf8]{inputenc}')
+#     print(r'\usepackage{amsmath,amssymb,amsfonts,amsthm}')
+#     print(r'\begin{document}')
+#     # print(r'\begin{landscape}')
 
-    print(r'\begin{align}')
-    print(r'R^{(1,2)} &= ', replace_values_in_string(latex(R12)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(1,2)} &= ', replace_values_in_string(latex(R12)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
 
-    # print(r'\begin{align}')
-    # print(r'\tilde{\omega}_{1/2}^{(1,1)} &= ', replace_values_in_string(latex(Omega12_11)))
-    # print(r'\end{align}')
-    # print(r'\\')
+#     # print(r'\begin{align}')
+#     # print(r'\tilde{\omega}_{1/2}^{(1,1)} &= ', replace_values_in_string(latex(Omega12_11)))
+#     # print(r'\end{align}')
+#     # print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{2}^{(1)} &= ', replace_values_in_string(latex(r_G2_1)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{2}^{(1)} &= ', replace_values_in_string(latex(r_G2_1)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(3,1)} &= ', replace_values_in_string(latex(R13)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(3,1)} &= ', replace_values_in_string(latex(R13)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{3}^{(1)} &= ', replace_values_in_string(latex(r_G3_1)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{3}^{(1)} &= ', replace_values_in_string(latex(r_G3_1)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{3}^{(2)} &= ', replace_values_in_string(latex(r_G3_2)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{3}^{(2)} &= ', replace_values_in_string(latex(r_G3_2)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(4,1)} &= ', replace_values_in_string(latex(R14)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(4,1)} &= ', replace_values_in_string(latex(R14)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{4}^{(1)} &= ', replace_values_in_string(latex(r_G4_1)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{4}^{(1)} &= ', replace_values_in_string(latex(r_G4_1)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{4}^{(2)} &= ', replace_values_in_string(latex(r_G4_2)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{4}^{(2)} &= ', replace_values_in_string(latex(r_G4_2)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(5,1)} &= ', replace_values_in_string(latex(R15)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(5,1)} &= ', replace_values_in_string(latex(R15)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{5}^{(1)} &= ', replace_values_in_string(latex(r_G5_1)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{5}^{(1)} &= ', replace_values_in_string(latex(r_G5_1)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{5}^{(2)} &= ', replace_values_in_string(latex(r_G5_2)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{5}^{(2)} &= ', replace_values_in_string(latex(r_G5_2)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(6,1)} &= ', replace_values_in_string(latex(R16)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(6,1)} &= ', replace_values_in_string(latex(R16)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{6}^{(1)} &= ', replace_values_in_string(latex(r_G6_1)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{6}^{(1)} &= ', replace_values_in_string(latex(r_G6_1)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{6}^{(2)} &= ', replace_values_in_string(latex(r_G6_2)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{6}^{(2)} &= ', replace_values_in_string(latex(r_G6_2)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(7,1)} &= ', replace_values_in_string(latex(R17)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(7,1)} &= ', replace_values_in_string(latex(R17)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{7}^{(1)} &= ', replace_values_in_string(latex(r_G7_1)))
-    print(r'\end{align}')
+#     print(r'\begin{align}')
+#     print(r'r_{7}^{(1)} &= ', replace_values_in_string(latex(r_G7_1)))
+#     print(r'\end{align}')
 
-    print(r'\begin{align}')
-    print(r'r_{7}^{(2)} &= ', replace_values_in_string(latex(r_G7_2)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{7}^{(2)} &= ', replace_values_in_string(latex(r_G7_2)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(\xi_{R},4)} &= ', replace_values_in_string(latex(Rxi_R)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(\xi_{R},4)} &= ', replace_values_in_string(latex(Rxi_R)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'R^{(\xi_{F},7)} &= ', replace_values_in_string(latex(Rxi_F)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'R^{(\xi_{F},7)} &= ', replace_values_in_string(latex(Rxi_F)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{R}^{(1)} &= ', replace_values_in_string(latex(r_R)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{R}^{(1)} &= ', replace_values_in_string(latex(r_R)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print(r'\begin{align}')
-    print(r'r_{L}^{(1)} &= ', replace_values_in_string(latex(r_F)))
-    print(r'\end{align}')
-    print(r'\\')
+#     print(r'\begin{align}')
+#     print(r'r_{L}^{(1)} &= ', replace_values_in_string(latex(r_F)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    print('\n', r'\end{document}')
+#     print(r'\begin{align}')
+#     print(r'C_{H} &= ', replace_values_in_string(latex(CH)))
+#     print(r'\end{align}')
+#     print(r'\\')
 
-    sys.stdout = original_stdout # Reset the standard output to its original value
+#     print(r'\begin{align}')
+#     print(r'C_{NH} &= ', replace_values_in_string(latex(CNH)))
+#     print(r'\end{align}')
+#     print(r'\\')
+
+#     print(r'\begin{align}')
+#     print(r'C_{Hdot} &= ', replace_values_in_string(latex(CH_dot)))
+#     print(r'\end{align}')
+#     print(r'\\')
+
+#     print('\n', r'\end{document}')
+
+#     sys.stdout = original_stdout # Reset the standard output to its original value
